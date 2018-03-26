@@ -10,8 +10,8 @@ bot = telebot.TeleBot(constants.token)
 
 
 def start_sql():
-    conn = mysql.connector.connect(host='localhost',
-                                   database='winnerok',
+    conn = mysql.connector.connect(host=constants.sql_url,
+                                   database=constants.sql_db,
                                    user=constants.sql_log,
                                    password=constants.sql_pass,
                                    get_warnings=True,

@@ -9,7 +9,6 @@ sql_pass = env['MYSQL_PASSWORD']  # pass
 sql_db = end['MYSQL_DATABASE']
 main_adm = 182092910
 admins = []  #    322526018 - Ирина Анатольевна
-path = os.getcwd() + '\\'
 rings = "Урок                Перемена\n" \
         "1) 8:05-8:45         10 минут\n" \
         "2) 8:55-9:35         20 минут\n" \
