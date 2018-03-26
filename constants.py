@@ -1,10 +1,12 @@
 import os
 env = os.environ
-token = '167826419:AAGSp1AEFUtJsni5hAqXswB6hUCu0pIcJss' #os.getenv('TELEGRAM_BOT_TOKEN')
-botan_key ='RvloNCDXYLgXZB5Jn7L3bL7otZUhUEmT'
+token = env['TELEGRAM_BOT_TOKEN']
+# botan_key ='RvloNCDXYLgXZB5Jn7L3bL7otZUhUEmT' # botan died =(
 group_id = -177688323
-sql_log = 'root'  # login
-sql_pass = '1D2a3n4i5i6l'  # pass
+sql_url = 'mysql://mysql:3306'
+sql_log = env['MYSQL_USER']  # login
+sql_pass = env['MYSQL_PASSWORD']  # pass
+sql_db = end['MYSQL_DATABASE']
 main_adm = 182092910
 admins = []  #    322526018 - Ирина Анатольевна
 path = os.getcwd() + '\\'
