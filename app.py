@@ -257,6 +257,21 @@ def help(message):
                                       "/video - Скачать фильм-презентацию школы\n", parse_mode='Markdown')
 
 
+@bot.message_handler(commands=['ad'])
+def ad(message):
+    if functions.admincheck(message):
+        text = message.text.replace("/ad ", "")
+        if text != message.text:
+            conn = functions.start_sql()
+            cursor = conn.cursor()
+            cursor.execute('UPDATE switch SET value = {0} WHERE var = "ad"'.format(text))
+            conn.commit()
+            cursor.close()
+            conn.close()
+        else:
+            bot.reply_to(message, "Usage:\n/ad {text}")
+
+
 @bot.message_handler(commands=['ahelp'])  # help for admins / такой же хелп, но для админов
 def admcmd(message):
     if functions.admincheck(message):
@@ -368,7 +383,7 @@ def user_list(message):
                 num += 1
             if text != "":
                 bot.send_message(message.chat.id, text, disable_notification=True)
-            bot.send_message(message.chat.id, "{0} записей в базе".format(num-1), disable_notification=True)
+            bot.send_message(message.chat.id, "{0} записей в базе".format(num - 1), disable_notification=True)
             cursor.close()
             conn.close()
     except:
