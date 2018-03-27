@@ -7,7 +7,6 @@ import sys
 import time
 import traceback
 
-import botan
 import constants
 import functions
 import openpyxl

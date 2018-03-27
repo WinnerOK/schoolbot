@@ -1,7 +1,6 @@
 import os
 env = os.environ
 token = env['TELEGRAM_BOT_TOKEN']
-# botan_key ='RvloNCDXYLgXZB5Jn7L3bL7otZUhUEmT' # botan died =(
 group_id = -177688323
 sql_url = 'mysql://mysql:3306'
 sql_log = env['MYSQL_USER']  # login
