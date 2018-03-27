@@ -3,6 +3,7 @@ cron_example.py
 *.bat
 ban.txt
 known_users.txt
+.idea/*
 .idea/modules.xml
 .idea/winnerok.iml
 ### PyCharm ###
