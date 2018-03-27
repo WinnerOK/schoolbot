@@ -1,6 +1,5 @@
 
 # Created by https://www.gitignore.io/api/pycharm,python
-#Мои файлы
 cron_example.py
 *.bat
 ban.txt
