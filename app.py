@@ -295,7 +295,7 @@ def feedback_list(message):
         if functions.admincheck(message):
             conn = functions.start_sql()
             cursor = conn.cursor()
-            cursor.execute("SELECT num, text FROM feedback ORDER BY num DESC")  # Сортировка в обратном порядке, чтобы старые фидбэки было удобнее смотреть
+            cursor.execute("SELECT id, text FROM feedback ORDER BY id DESC")  # Сортировка в обратном порядке, чтобы старые фидбэки было удобнее смотреть
             for num, text in functions.iter_row(cursor, 10):
                 bot.send_message(message.chat.id, text + '\n/answer ' + str(num) + ' текст')
             bot.send_message(message.chat.id, "Все фидбэки отправлены")
