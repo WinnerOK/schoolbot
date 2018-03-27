@@ -1,7 +1,7 @@
 import traceback
 
+
 import mysql.connector
-import requests
 import telebot
 
 import constants
