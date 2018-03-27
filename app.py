@@ -3,6 +3,8 @@
 TODO: переосмыслить смысл таблицы switch:
 Мб день недели считать по ходу дела.
 Каждый месяц менять фон - фигня. Мб просто хранить текущий.
+
+Убери костыль с fetchone
 '''
 
 import datetime
@@ -41,7 +43,9 @@ def pong(msg):
 
 
 """
-заменить dic на массив [(mon, Понедельник)] и обращаться по [curday-1][0/1]
+заменить dic на что-то красивое.
+Он используется в расписании по inline конпкам
+"""
 dic = {
     'mon': 'Понедельник',
     'tue': 'Вторник',
@@ -50,7 +54,6 @@ dic = {
     'fri': 'Пятницу',
     'sat': 'Субботу',
 }
-"""
 days_for_rasp = [
     ('mon', 'Понедельник'),
     ('tue', 'Вторник'),
@@ -187,37 +190,6 @@ def rasp(message):
     :param message:
     :return:
     '''
-    """
-     try:
-        conn = functions.start_sql()
-        cursor = conn.cursor(buffered=True)
-        get_klass = 'SELECT klass FROM known_users WHERE id = {0}'.format(message.from_user.id)  # получает группу для клавы
-        cursor.execute(get_klass)
-        kostyl = cursor.fetchone()
-        if kostyl is None:
-            group(message)
-            return
-        for klass in kostyl:
-            if klass is not None:  # If user set their group / Если пользователь установил группу
-                cursor.execute("SELECT data FROM switch WHERE field = 'today'")  # Получает день из таблицы switch (день через крон устанавливается каждую полночь)
-                for day in cursor.fetchone():
-                    cursor.execute("SELECT {0} FROM schedule WHERE klass = '{1}'".format(day, klass))
-                    for schedule in cursor.fetchone():
-                        first_text = "Расписание уроков для группы {group} на {day}".format(group=klass, day=dic[day])
-                        ad = "\n\n\U0001F50AИнформацию о появлении расписания и не только можно будет найти на канале @school134_info"
-                        schedule_keyboard = functions.schedule_inline_keyboard(day, klass)
-                        bot.send_photo(chat_id=message.chat.id, photo=schedule, caption=first_text + ad, reply_markup=schedule_keyboard, disable_notification=True)
-            else:
-                group(message)  # if group wasn't set, sets it / Если пользователь не указал группу, то переводит в указание
-    # except TypeError:
-    #    pass
-    except:
-        bot.reply_to(message, "Напишите мне в лс (@school134_bot) команду /start")
-        traceback.print_exc()
-        ei = "".join(traceback.format_exception(*sys.exc_info()))
-        name = message.from_user.first_name + ' ' + message.from_user.last_name + ' ' + message.from_user.username + ' ' + str(message.from_user.id) + '\n'
-        log('rasp ', name + ei)
-    """
     try:
         conn = functions.start_sql()
         cursor = conn.cursor()
@@ -225,7 +197,7 @@ def rasp(message):
         cursor.execute(get_klass)
         klass = cursor.fetchone()[0]
         if klass:
-            today = (datetime.datetime.now() + datetime.timedelta(hours=8)).weekday()
+            today = (datetime.datetime.now(tz=tz) + datetime.timedelta(hours=8)).weekday()
             cursor.execute("SELECT {0} FROM schedule WHERE klass = '{1}'".format(days_for_rasp[today][0], klass))
             schedule = cursor.fetchone()[0]
             first_text = "Расписание уроков для группы {group} на {day}".format(group=klass, day=days_for_rasp[today][1])
@@ -466,6 +438,7 @@ def switch(message):
 @bot.callback_query_handler(func=lambda call: True)
 def callback_inline(call):
     if call.message:
+        # TODO: Чекни, не мутная ли это схема
         pref = call.data.split('_')  # Разделение в лист по ключу
         # =========================================================================================================== SCHEDULE
         if pref[0] == 's':  # s_{day}_{group}
@@ -479,16 +452,16 @@ def callback_inline(call):
                 try:
                     conn = functions.start_sql()
                     cursor = conn.cursor(buffered=True)
-                    functions.isknown(call, pref[2])
+                    functions.isknown(call, pref[2]) # TODO: сделай почеловечести эту функцию
+
                     get_schedule = "SELECT {day} FROM schedule WHERE klass = '{group}'".format(day=pref[1], group=pref[2])
                     cursor.execute(get_schedule)
-                    for schedule in cursor.fetchone():
-                        first_text = "Расписание уроков для группы {group} на {day}".format(group=pref[2], day=dic[pref[1]])
-                        keyboard = functions.schedule_inline_keyboard(pref[1], pref[2])
-                        #  +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-                        bot.send_photo(chat_id=call.message.chat.id, photo=schedule, caption=first_text, reply_markup=keyboard, disable_notification=True)
-                        cursor.close()
-                        conn.close()
+                    schedule = cursor.fetchone()[0]
+                    cursor.close()
+                    conn.close()
+                    first_text = "Расписание уроков для группы {group} на {day}".format(group=pref[2], day=dic[pref[1]])
+                    keyboard = functions.schedule_inline_keyboard(pref[1], pref[2])
+                    bot.send_photo(chat_id=call.message.chat.id, photo=schedule, caption=first_text, reply_markup=keyboard, disable_notification=True)
                 except telebot.apihelper.ApiException:
                     traceback.print_exc()
                     ei = "".join(traceback.format_exception(*sys.exc_info()))
