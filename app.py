@@ -272,7 +272,7 @@ def answer(message):
             if msg != message.text:  # Проверка на случайное нажатие /answer
                 conn = functions.start_sql()
                 cursor = conn.cursor(buffered=True)
-                cursor.execute("SELECT u_id, m_id FROM feedback WHERE num = {0} ".format(msg[0:msg.find(" ")]))  # Вырежет из сообщения номер
+                cursor.execute("SELECT u_id, m_id FROM feedback WHERE id = {0} ".format(msg[0:msg.find(" ")]))  # Вырежет из сообщения номер
                 for u_id, m_id in cursor.fetchmany(1):  # Если получать кортеж через fetchone, то вернет итерируемый лист, тогда не будет работать цикл
                     bot.send_message(u_id, "Ответ разработчика:\n" + msg[msg.find(" ") + 1:], reply_to_message_id=m_id)
                     cursor.execute("DELETE FROM feedback WHERE num = {0}".format(msg[0:msg.find(" ")]))  # Удаляет фидбэк, на который был получен ответ, из бд
