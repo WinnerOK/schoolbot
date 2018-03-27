@@ -380,9 +380,10 @@ def sql(message):
         try:
             conn = functions.start_sql()
             cursor = conn.cursor()
-            cmd = message.text.replace("/sql ", "")
+            cmd = message.text.replace("/sql ", "") # type: str
             if cmd:
-                cursor.execute(cmd, multi=True)
+                mul = bool(cmd.count(';'))
+                cursor.execute(cmd, multi=mul)
                 report = ""
                 for elem in functions.iter_row(cursor, 20):
                     report += str(elem) + ' '
