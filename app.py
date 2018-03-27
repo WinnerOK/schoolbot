@@ -7,6 +7,7 @@ import re
 import sys
 import time
 import traceback
+import os
 
 import constants
 import functions
@@ -26,6 +27,7 @@ def log(module, info):
         f.writelines(info)
     with open('{0}_err.txt'.format(module), 'rb') as f:
         bot.send_document(constants.main_adm, f)
+    os.remove('{0}_err.txt'.format(module))
 
 
 @bot.message_handler(commands=["ping"])
@@ -380,7 +382,7 @@ def sql(message):
             cursor = conn.cursor()
             cmd = message.text.replace("/sql ", "")
             if cmd:
-                cursor.execute(cmd)
+                cursor.execute(cmd, multi=True)
                 report = ""
                 for elem in functions.iter_row(cursor, 20):
                     report += str(elem) + ' '
