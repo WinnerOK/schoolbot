@@ -1,5 +1,9 @@
 # 403 - код ошибки, когда бот не может достучаться до юзера
-
+'''
+TODO: переосмыслить смысл таблицы switch:
+Мб день недели считать по ходу дела.
+Каждый месяц менять фон - фигня. Мб просто хранить текущий.
+'''
 
 import datetime
 import logging
@@ -36,14 +40,25 @@ def pong(msg):
     bot.reply_to(msg, 'pong')
 
 
+"""
+заменить dic на массив [(mon, Понедельник)] и обращаться по [curday-1][0/1]
 dic = {
     'mon': 'Понедельник',
     'tue': 'Вторник',
     'wed': 'Среду',
     'thu': 'Четверг',
     'fri': 'Пятницу',
-    'sat': 'Субботу'
+    'sat': 'Субботу',
 }
+"""
+days_for_rasp = [
+    ('mon', 'Понедельник'),
+    ('tue', 'Вторник'),
+    ('wed', 'Среду'),
+    ('thu', 'Четверг'),
+    ('fri', 'Пятницу'),
+    ('sat', 'Субботу'),
+]
 
 logger = telebot.logger
 logger_level = logging.ERROR
@@ -60,6 +75,7 @@ def test(message):
     try:
         conn = functions.start_sql()
         cursor = conn.cursor()
+        cursor.execute('''''')
         cursor.execute('''INSERT INTO known_users ( `klass`, `mon`, `tue`, `wed`, `thu`, `fri`, `sat`) VALUES
         ("М60", NULL, NULL, NULL, NULL, NULL, NULL ),
         ("М61", NULL, NULL, NULL, NULL, NULL, NULL ),
@@ -190,7 +206,15 @@ def group(message):
 @bot.message_handler(func=lambda x: x.text in ['\U0001F392 Расписание', '/rasp'])
 # Sending schedule for today / Отправляет расписание на сегодня
 def rasp(message):
-    try:
+    '''
+    TODO узнавать день недели по сообщению
+    есть поле
+    date	Integer	 Date the message was sent in Unix time
+    :param message:
+    :return:
+    '''
+    """
+     try:
         conn = functions.start_sql()
         cursor = conn.cursor(buffered=True)
         get_klass = 'SELECT klass FROM known_users WHERE id = {0}'.format(message.from_user.id)  # получает группу для клавы
@@ -211,6 +235,21 @@ def rasp(message):
                         bot.send_photo(chat_id=message.chat.id, photo=schedule, caption=first_text + ad, reply_markup=schedule_keyboard, disable_notification=True)
             else:
                 group(message)  # if group wasn't set, sets it / Если пользователь не указал группу, то переводит в указание
+    # except TypeError:
+    #    pass
+    except:
+        bot.reply_to(message, "Напишите мне в лс (@school134_bot) команду /start")
+        traceback.print_exc()
+        ei = "".join(traceback.format_exception(*sys.exc_info()))
+        name = message.from_user.first_name + ' ' + message.from_user.last_name + ' ' + message.from_user.username + ' ' + str(message.from_user.id) + '\n'
+        log('rasp ', name + ei)
+    """
+    try:
+        conn = functions.start_sql()
+        cursor = conn.cursor()
+        get_klass = 'SELECT klass FROM known_users WHERE id = {0}'.format(message.from_user.id)  # получает группу для клавы
+        cursor.execute(get_klass)
+        bot.reply_to(message, str(cursor.fetchone()))
     # except TypeError:
     #    pass
     except:
@@ -309,7 +348,7 @@ def answer(message):
         log('answer ', name + ei)
 
 
-@bot.message_handler(commands=['fblist'])  # Получает список фидбэков без ответов
+@bot.message_handler(commands=['fblist'])  # Получает список фидбэков
 def feedback_list(message):
     try:
         if functions.admincheck(message):
@@ -333,7 +372,7 @@ def user_list(message):
             conn = functions.start_sql()
             cursor = conn.cursor(buffered=True)
             cursor.execute("SELECT id, klass FROM known_users ORDER BY klass")
-            num = 1
+            num = 0
             text = ""
             for id, klass in functions.iter_row(cursor, 50):
                 msg = "{0}--{1}\n".format(id, klass)
@@ -516,17 +555,7 @@ def set_background(message, data):
             if abs(photo.width - 1280) <= 10 and abs(photo.height - 800) <= 10:
                 conn = functions.start_sql()
                 cursor = conn.cursor()
-                cursor.execute("SELECT data FROM switch WHERE field = 'month_this' or field = 'month_next'")  # [('next',), ('this',)]
-                bot.send_message(message.chat.id, 'selected')
-                months = cursor.fetchall()
-                now = datetime.datetime.now(tz)
-                if months[1][0] is '':
-                    cursor.execute("UPDATE switch SET data = '{0}' WHERE field = 'month_this'".format(photo.file_id))
-                    bot.reply_to(message, "Фон на {0}й месяц задан\n".format(str(now.month)))
-                    rasp_add(message, data=None, new_schedule=False)
-                else:
-                    cursor.execute("UPDATE switch SET data = '{0}' WHERE field = 'month_next'".format(photo.file_id))
-                    bot.reply_to(message, "Фон на {0}й месяц задан".format(str(now.month % 12 + 1)))
+                cursor.execute("UPDATE switch SET value = '{0}' WHERE var = 'background'".format(photo.file_id))
                 conn.commit()
             else:
                 bot.reply_to(message, "Допустимые размеры фото 1280*800 +- 10 пикселей с каждой стороны\n Размер фото:" + str(photo.width) + " " + str(photo.height))
