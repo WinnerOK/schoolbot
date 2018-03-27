@@ -2,7 +2,7 @@ import os
 env = os.environ
 token = env['TELEGRAM_BOT_TOKEN']
 group_id = -177688323
-sql_url = 'mysql://mysql:3306'
+sql_url = env['MYSQL_SERVICE_HOST']
 sql_log = env['MYSQL_USER']  # login
 sql_pass = env['MYSQL_PASSWORD']  # pass
 sql_db = env['MYSQL_DATABASE']
