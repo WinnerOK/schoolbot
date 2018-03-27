@@ -3,18 +3,19 @@
 
 import datetime
 import logging
+import os
 import re
 import sys
 import time
 import traceback
-import os
 
-import constants
-import functions
 import openpyxl
 import pytz
 import telebot
 from PIL import Image, ImageDraw, ImageFont
+
+import constants
+import functions
 
 bot = telebot.TeleBot(constants.token)
 
@@ -59,6 +60,30 @@ def test(message):
     try:
         conn = functions.start_sql()
         cursor = conn.cursor()
+        cursor.execute('''INSERT INTO known_users ( `klass`, `mon`, `tue`, `wed`, `thu`, `fri`, `sat`) VALUES
+        ("М60", NULL, NULL, NULL, NULL, NULL, NULL ),
+        ("М61", NULL, NULL, NULL, NULL, NULL, NULL ),
+        ("М56", NULL, NULL, NULL, NULL, NULL, NULL ),
+        ("М57", NULL, NULL, NULL, NULL, NULL, NULL ),
+        ("М58", NULL, NULL, NULL, NULL, NULL, NULL ),
+        ("М59", NULL, NULL, NULL, NULL, NULL, NULL ),
+        ("Э51", NULL, NULL, NULL, NULL, NULL, NULL ),
+        ("Э52", NULL, NULL, NULL, NULL, NULL, NULL ),
+        ("Э47", NULL, NULL, NULL, NULL, NULL, NULL ),
+        ("Э48", NULL, NULL, NULL, NULL, NULL, NULL ),
+        ("Э49", NULL, NULL, NULL, NULL, NULL, NULL ),
+        ("Э50", NULL, NULL, NULL, NULL, NULL, NULL ),
+        ("Х34", NULL, NULL, NULL, NULL, NULL, NULL ),
+        ("Х35", NULL, NULL, NULL, NULL, NULL, NULL ),
+        ("Х31", NULL, NULL, NULL, NULL, NULL, NULL ),
+        ("Х32", NULL, NULL, NULL, NULL, NULL, NULL ),
+        ("Х33", NULL, NULL, NULL, NULL, NULL, NULL ),
+        ("ФМ14", NULL, NULL, NULL, NULL, NULL, NULL ),
+        ("ФМ12", NULL, NULL, NULL, NULL, NULL, NULL ),
+        ("ФМ13", NULL, NULL, NULL, NULL, NULL, NULL )''')
+        conn.commit()
+        cursor.close()
+        conn.close()
         bot.send_message(message.chat.id, 'Server time ' + str(datetime.datetime.now()))
     except:
         traceback.print_exc()
@@ -99,7 +124,6 @@ def vid360(message):
 def start(message):
     try:
         if functions.isprivate(message):
-            # botan.track(constants.botan_key, message.chat.id, message, "Start")
             try:  # trying to insert information about user. / попытка внести информацию о юзере
                 conn = functions.start_sql()
                 cursor = conn.cursor(buffered=True)
@@ -125,7 +149,6 @@ def start(message):
 def stop(message):
     try:
         if functions.isprivate(message):
-            # .track(constants.botan_key, message.chat.id, message, "Stop")
             conn = functions.start_sql()
             cursor = conn.cursor()
             try:
@@ -146,7 +169,6 @@ def stop(message):
 # setup user's group / Установка группы юзера
 def group(message):
     if functions.isprivate(message):
-        # botan.track(constants.botan_key, message.chat.id, message, "Group")
         try:  # generating and sending keyboard with faculties / Создает клаву с факультетами и отправляет её
             inline_keyboard = telebot.types.InlineKeyboardMarkup(row_width=2)
             buttons = [
@@ -169,7 +191,6 @@ def group(message):
 # Sending schedule for today / Отправляет расписание на сегодня
 def rasp(message):
     try:
-        # botan.track(constants.botan_key, message.chat.id, message, "Rasp")
         conn = functions.start_sql()
         cursor = conn.cursor(buffered=True)
         get_klass = 'SELECT klass FROM known_users WHERE id = {0}'.format(message.from_user.id)  # получает группу для клавы
@@ -203,7 +224,6 @@ def rasp(message):
 @bot.message_handler(func=lambda x: x.text in ['\U00002753 Помощь', '/help'])
 # just help message
 def help(message):
-    # botan.track(constants.botan_key, message.chat.id, message, "Help")
     bot.send_message(message.chat.id, "/start - Начать работу\n"
                                       "/stop - Удалить себя из базы данных\n"
                                       "/group - Изменяет вашу группу\n"
@@ -237,7 +257,6 @@ def addrap(message):
 @bot.message_handler(commands=['fb'])  # sending feedback to developer / отправляет фидбэк разрабу
 def feedback(message):
     try:
-        # botan.track(constants.botan_key, message.chat.id, message, "Feedback")
         msg = message.text.replace('/fb ', '')
         if msg != message.text:  # if '/fb ' deleted then user sends some text / если сообщение не изменилось, то пользователь просто отправил '/fb' - без текста
             report = "Сообщение от {first_name} {last_name} (@{username})\n" \
@@ -276,7 +295,7 @@ def answer(message):
                 cursor.execute("SELECT u_id, m_id FROM feedback WHERE id = {0} ".format(msg[0:msg.find(" ")]))  # Вырежет из сообщения номер
                 for u_id, m_id in cursor.fetchmany(1):  # Если получать кортеж через fetchone, то вернет итерируемый лист, тогда не будет работать цикл
                     bot.send_message(u_id, "Ответ разработчика:\n" + msg[msg.find(" ") + 1:], reply_to_message_id=m_id)
-                    cursor.execute("DELETE FROM feedback WHERE num = {0}".format(msg[0:msg.find(" ")]))  # Удаляет фидбэк, на который был получен ответ, из бд
+                    cursor.execute("DELETE FROM feedback WHERE id = {0}".format(msg[0:msg.find(" ")]))  # Удаляет фидбэк, на который был получен ответ, из бд
                     conn.commit()
                 cursor.close()
                 conn.close()
@@ -380,7 +399,7 @@ def sql(message):
         try:
             conn = functions.start_sql()
             cursor = conn.cursor()
-            cmd = message.text.replace("/sql ", "") # type: str
+            cmd = message.text.replace("/sql ", "")  # type: str
             if cmd:
                 mul = bool(cmd.count(';'))
                 cursor.execute(cmd, multi=mul)
@@ -426,7 +445,6 @@ def callback_inline(call):
         pref = call.data.split('_')  # Разделение в лист по ключу
         # =========================================================================================================== SCHEDULE
         if pref[0] == 's':  # s_{day}_{group}
-            # botan.track(constants.botan_key, call.from_user.id, call, "Rasp", True)
             if pref[1] == 'rings':  # Звонки берутся с локального файла
                 keyboard = functions.schedule_inline_keyboard(pref[1], pref[2])
                 if call.message.text:
@@ -716,7 +734,6 @@ if __name__ == '__main__':
             traceback.print_exc()
 '''
 
-
 '''
 # месяц возвращается в виде next past this (alphabet order)
 server = Flask(__name__)
@@ -752,4 +769,5 @@ def webhook():
 
 if __name__ == '__main__':
     server.run()
+
 '''
