@@ -249,7 +249,7 @@ def rasp(message):
         cursor = conn.cursor()
         get_klass = 'SELECT klass FROM known_users WHERE id = {0}'.format(message.from_user.id)  # получает группу для клавы
         cursor.execute(get_klass)
-        bot.reply_to(message, str(cursor.fetchone()))
+        bot.reply_to(message, str(cursor.fetchone()[0]))
     # except TypeError:
     #    pass
     except:
@@ -372,7 +372,7 @@ def user_list(message):
             conn = functions.start_sql()
             cursor = conn.cursor(buffered=True)
             cursor.execute("SELECT id, klass FROM known_users ORDER BY klass")
-            num = 0
+            num = 1
             text = ""
             for id, klass in functions.iter_row(cursor, 50):
                 msg = "{0}--{1}\n".format(id, klass)
@@ -383,7 +383,7 @@ def user_list(message):
                 num += 1
             if text != "":
                 bot.send_message(message.chat.id, text, disable_notification=True)
-            bot.send_message(message.chat.id, "{0} записей в базе".format(num), disable_notification=True)
+            bot.send_message(message.chat.id, "{0} записей в базе".format(num-1), disable_notification=True)
             cursor.close()
             conn.close()
     except:
