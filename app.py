@@ -58,6 +58,7 @@ days_for_rasp = [
     ('thu', 'Четверг'),
     ('fri', 'Пятницу'),
     ('sat', 'Субботу'),
+    ('mon', 'Понедельник'),
 ]
 
 logger = telebot.logger
@@ -73,33 +74,6 @@ logging.basicConfig(format=u'%(filename)s[LINE:%(lineno)d]# %(levelname)-8s [%(a
 @bot.message_handler(commands=['test'])
 def test(message):
     try:
-        conn = functions.start_sql()
-        cursor = conn.cursor()
-        cursor.execute('''''')
-        cursor.execute('''INSERT INTO known_users ( `klass`, `mon`, `tue`, `wed`, `thu`, `fri`, `sat`) VALUES
-        ("М60", NULL, NULL, NULL, NULL, NULL, NULL ),
-        ("М61", NULL, NULL, NULL, NULL, NULL, NULL ),
-        ("М56", NULL, NULL, NULL, NULL, NULL, NULL ),
-        ("М57", NULL, NULL, NULL, NULL, NULL, NULL ),
-        ("М58", NULL, NULL, NULL, NULL, NULL, NULL ),
-        ("М59", NULL, NULL, NULL, NULL, NULL, NULL ),
-        ("Э51", NULL, NULL, NULL, NULL, NULL, NULL ),
-        ("Э52", NULL, NULL, NULL, NULL, NULL, NULL ),
-        ("Э47", NULL, NULL, NULL, NULL, NULL, NULL ),
-        ("Э48", NULL, NULL, NULL, NULL, NULL, NULL ),
-        ("Э49", NULL, NULL, NULL, NULL, NULL, NULL ),
-        ("Э50", NULL, NULL, NULL, NULL, NULL, NULL ),
-        ("Х34", NULL, NULL, NULL, NULL, NULL, NULL ),
-        ("Х35", NULL, NULL, NULL, NULL, NULL, NULL ),
-        ("Х31", NULL, NULL, NULL, NULL, NULL, NULL ),
-        ("Х32", NULL, NULL, NULL, NULL, NULL, NULL ),
-        ("Х33", NULL, NULL, NULL, NULL, NULL, NULL ),
-        ("ФМ14", NULL, NULL, NULL, NULL, NULL, NULL ),
-        ("ФМ12", NULL, NULL, NULL, NULL, NULL, NULL ),
-        ("ФМ13", NULL, NULL, NULL, NULL, NULL, NULL )''')
-        conn.commit()
-        cursor.close()
-        conn.close()
         bot.send_message(message.chat.id, 'Server time ' + str(datetime.datetime.now()))
     except:
         traceback.print_exc()
@@ -249,7 +223,18 @@ def rasp(message):
         cursor = conn.cursor()
         get_klass = 'SELECT klass FROM known_users WHERE id = {0}'.format(message.from_user.id)  # получает группу для клавы
         cursor.execute(get_klass)
-        bot.reply_to(message, str(cursor.fetchone()[0]))
+        klass = cursor.fetchone()[0]
+        if klass:
+            today = (datetime.datetime.now() + datetime.timedelta(hours=8)).weekday()
+            cursor.execute("SELECT {0} FROM schedule WHERE klass = '{1}'".format(days_for_rasp[today][0], klass))
+            schedule = cursor.fetchone()[0]
+            first_text = "Расписание уроков для группы {group} на {day}".format(group=klass, day=days_for_rasp[today][1])
+            cursor.execute('SELECT value FROM switch where var="ad" ')
+            ad = cursor.fetchone()[0]
+            schedule_keyboard = functions.schedule_inline_keyboard(days_for_rasp[today][0], klass)
+            bot.send_photo(chat_id=message.chat.id, photo=schedule, caption=first_text + ad, reply_markup=schedule_keyboard, disable_notification=True)
+        else:
+            group(message)
     # except TypeError:
     #    pass
     except:
