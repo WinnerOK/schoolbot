@@ -230,7 +230,7 @@ def rasp(message):
             schedule = cursor.fetchone()[0]
             first_text = "Расписание уроков для группы {group} на {day}".format(group=klass, day=days_for_rasp[today][1])
             cursor.execute('SELECT value FROM switch where var="ad" ')
-            ad = cursor.fetchone()[0]
+            ad = "\n\n\U0001F50AИнформацию о появлении расписания и не только можно будет найти на канале @school134_info" # TODO: Сделать возможность менять это сообщение из базы
             schedule_keyboard = functions.schedule_inline_keyboard(days_for_rasp[today][0], klass)
             bot.send_photo(chat_id=message.chat.id, photo=schedule, caption=first_text + ad, reply_markup=schedule_keyboard, disable_notification=True)
         else:
@@ -255,21 +255,6 @@ def help(message):
                                       "/fb [текст] - Отправляет ваше сообщение разработчику _(используйте её если у вас возникли проблемы или вопросы)_\n"
                                       "/help - Выводит это сообщение\n"
                                       "/video - Скачать фильм-презентацию школы\n", parse_mode='Markdown')
-
-
-@bot.message_handler(commands=['ad'])
-def ad(message):
-    if functions.admincheck(message):
-        text = message.text.replace("/ad ", "")
-        if text != message.text:
-            conn = functions.start_sql()
-            cursor = conn.cursor()
-            cursor.execute('UPDATE switch SET value = {0} WHERE var = "ad"'.format(text))
-            conn.commit()
-            cursor.close()
-            conn.close()
-        else:
-            bot.reply_to(message, "Usage:\n/ad {text}")
 
 
 @bot.message_handler(commands=['ahelp'])  # help for admins / такой же хелп, но для админов
