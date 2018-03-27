@@ -56,8 +56,6 @@ def test(message):
     try:
         conn = functions.start_sql()
         cursor = conn.cursor()
-        cursor.execute("SELECT next_step FROM known_users WHERE id={u_ud}".format(u_ud=message.from_user.id))
-        bot.send_message(message.chat.id, str(cursor.fetchone()))
         bot.send_message(message.chat.id, 'Server time ' + str(datetime.datetime.now()))
     except:
         traceback.print_exc()
