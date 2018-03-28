@@ -4,7 +4,7 @@ TODO: переосмыслить смысл таблицы switch:
 Мб день недели считать по ходу дела.
 Каждый месяц менять фон - фигня. Мб просто хранить текущий.
 
-Убери костыль с fetchone
+Убери костыль с fetchone (цикл for). Достаточно проверять кортеж и вытаскивать 1й элемент
 '''
 
 import datetime
@@ -15,6 +15,7 @@ import sys
 import time
 import traceback
 
+from flask import Flask
 import openpyxl
 import pytz
 import telebot
@@ -24,9 +25,14 @@ import constants
 import functions
 
 bot = telebot.TeleBot(constants.token)
-
 tz = pytz.timezone('Asia/Almaty')
 
+server = Flask(__name__)
+server.config['PROPAGATE_EXCEPTIONS'] = True
+
+@server.route('/')
+def hello_world():
+    return 'hello world!'
 
 def log(module, info):
     with open('{0}_err.txt'.format(module), 'w') as f:
@@ -195,8 +201,9 @@ def rasp(message):
         cursor = conn.cursor()
         get_klass = 'SELECT klass FROM known_users WHERE id = {0}'.format(message.from_user.id)  # получает группу для клавы
         cursor.execute(get_klass)
-        klass = cursor.fetchone()[0]
+        klass = cursor.fetchone()
         if klass:
+            klass = klass[0]
             today = (datetime.datetime.now(tz=tz) + datetime.timedelta(hours=8)).weekday()
             cursor.execute("SELECT {0} FROM schedule WHERE klass = '{1}'".format(days_for_rasp[today][0], klass))
             schedule = cursor.fetchone()[0]
@@ -707,18 +714,12 @@ def ras_switch(message, data):
         name = message.from_user.first_name + ' ' + message.from_user.last_name + ' ' + message.from_user.username + ' ' + str(message.from_user.id) + '\n'
         log('ras ', name + ei)
 
-
+'''
 if __name__ == '__main__':
     try:
         bot.polling(none_stop=True, timeout=5)
     except Exception as e:
         traceback.print_exc()
-'''
-    while True:
-        try:
-            bot.polling(none_stop=True, timeout=5)
-        except Exception as e:
-            traceback.print_exc()
 '''
 
 '''
