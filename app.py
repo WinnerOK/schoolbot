@@ -1,8 +1,8 @@
 # 403 - код ошибки, когда бот не может достучаться до юзера
 '''
-TODO: переосмыслить смысл таблицы switch:
-Мб день недели считать по ходу дела.
-Каждый месяц менять фон - фигня. Мб просто хранить текущий.
+TODO:
+Если начнется нестабильная работа, то найти способ поставить webhook
+openshift не дает ssl сертификат
 
 Убери костыль с fetchone (цикл for). Достаточно проверять кортеж и вытаскивать 1й элемент
 '''
@@ -15,7 +15,6 @@ import sys
 import time
 import traceback
 
-from flask import Flask, request
 import openpyxl
 import pytz
 import telebot
@@ -26,38 +25,6 @@ import functions
 
 bot = telebot.TeleBot(constants.token)
 tz = pytz.timezone('Asia/Almaty')
-
-application = Flask(__name__)
-
-
-@application.route('/')
-def hello_world():
-    return 'hello world!'
-
-
-@application.route('/setwebhook')
-def set_webhook():
-    try:
-        bot.remove_webhook()
-        time.sleep(2)
-        bot.set_webhook(url=os.getenv('SERVER_URL') + '/webhook')
-        return '!', 200
-    except:
-        traceback.print_exc()
-        ei = "".join(traceback.format_exception(*sys.exc_info()))
-        log('setwebhook', ei)
-
-
-@application.route("/webhook", methods=['POST'])
-def get_message():
-    try:
-        update = telebot.types.Update.de_json(request.stream.read().decode("utf-8"))
-        bot.process_new_updates([update])
-        return "!", 200
-    except:
-        traceback.print_exc()
-        ei = "".join(traceback.format_exception(*sys.exc_info()))
-        log('getting msg by hook', ei)
 
 
 def log(module, info):
@@ -101,8 +68,8 @@ logger_level = logging.ERROR
 telebot.logger.setLevel(logger_level)
 
 logging.basicConfig(format=u'%(filename)s[LINE:%(lineno)d]# %(levelname)-8s [%(asctime)s]  %(message)s',
-                    filename='logs\\{:%Y-%m-%d_%H-%M-%S}.log'.format(datetime.datetime.now(tz=tz)),
-                    filemode='w',
+                    # filename='logs\\{:%Y-%m-%d_%H-%M-%S}.log'.format(datetime.datetime.now(tz=tz)),
+                    # filemode='w',
                     level=logger_level)
 
 
@@ -742,26 +709,41 @@ def ras_switch(message, data):
 
 
 if __name__ == '__main__':
-    application.run()
-
-'''
-if __name__ == '__main__':
     try:
         bot.polling(none_stop=True, timeout=5)
     except Exception as e:
         traceback.print_exc()
 '''
+if __name__ == '__main__':
+    application.run()
 
 '''
-# месяц возвращается в виде next past this (alphabet order)
-server = Flask(__name__)
+
+'''
+from flask import Flask, request
+application = Flask(__name__)
 
 
-# server.config['PROPAGATE_EXCEPTIONS'] = True
+@application.route('/')
+def hello_world():
+    return 'hello world!'
 
 
-@server.route("/webhook", methods=['POST'])
-def getMessage():
+@application.route('/setwebhook')
+def set_webhook():
+    try:
+        bot.remove_webhook()
+        time.sleep(2)
+        bot.set_webhook(url=os.getenv('SERVER_URL') + '/webhook')
+        return '!', 200
+    except:
+        traceback.print_exc()
+        ei = "".join(traceback.format_exception(*sys.exc_info()))
+        log('setwebhook', ei)
+
+
+@application.route("/webhook", methods=['POST'])
+def get_message():
     try:
         update = telebot.types.Update.de_json(request.stream.read().decode("utf-8"))
         bot.process_new_updates([update])
@@ -770,22 +752,5 @@ def getMessage():
         traceback.print_exc()
         ei = "".join(traceback.format_exception(*sys.exc_info()))
         log('getting msg by hook', ei)
-
-
-@server.route('/setwebhook')
-def webhook():
-    try:
-        bot.remove_webhook()
-        time.sleep(2)
-        bot.set_webhook(url="https://python-schoolbot.7e14.starter-us-west-2.openshiftapps.com/webhook")
-        return "!", 200
-    except:
-        traceback.print_exc()
-        ei = "".join(traceback.format_exception(*sys.exc_info()))
-        log('setwebhook', ei)
-
-
-if __name__ == '__main__':
-    server.run()
 
 '''
