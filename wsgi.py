@@ -15,7 +15,7 @@ import sys
 import time
 import traceback
 
-from flask import Flask
+from flask import Flask, request
 import openpyxl
 import pytz
 import telebot
@@ -33,6 +33,31 @@ application = Flask(__name__)
 @application.route('/')
 def hello_world():
     return 'hello world!'
+
+
+@application.route('/setwebhook')
+def set_webhook():
+    try:
+        bot.remove_webhook()
+        time.sleep(2)
+        bot.set_webhook(url=os.getenv('SERVER_URL') + '/webhook')
+        return '!', 200
+    except:
+        traceback.print_exc()
+        ei = "".join(traceback.format_exception(*sys.exc_info()))
+        log('setwebhook', ei)
+
+
+@application.route("/webhook", methods=['POST'])
+def get_message():
+    try:
+        update = telebot.types.Update.de_json(request.stream.read().decode("utf-8"))
+        bot.process_new_updates([update])
+        return "!", 200
+    except:
+        traceback.print_exc()
+        ei = "".join(traceback.format_exception(*sys.exc_info()))
+        log('getting msg by hook', ei)
 
 
 def log(module, info):
@@ -714,6 +739,7 @@ def ras_switch(message, data):
         ei = "".join(traceback.format_exception(*sys.exc_info()))
         name = message.from_user.first_name + ' ' + message.from_user.last_name + ' ' + message.from_user.username + ' ' + str(message.from_user.id) + '\n'
         log('ras ', name + ei)
+
 
 if __name__ == '__main__':
     application.run()
