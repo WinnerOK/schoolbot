@@ -27,12 +27,13 @@ import functions
 bot = telebot.TeleBot(constants.token)
 tz = pytz.timezone('Asia/Almaty')
 
-server = Flask(__name__)
-server.config['PROPAGATE_EXCEPTIONS'] = True
+application = Flask(__name__)
 
-@server.route('/')
+
+@application.route('/')
 def hello_world():
     return 'hello world!'
+
 
 def log(module, info):
     with open('{0}_err.txt'.format(module), 'w') as f:
@@ -209,7 +210,7 @@ def rasp(message):
             schedule = cursor.fetchone()[0]
             first_text = "Расписание уроков для группы {group} на {day}".format(group=klass, day=days_for_rasp[today][1])
             cursor.execute('SELECT value FROM switch where var="ad" ')
-            ad = "\n\n\U0001F50AИнформацию о появлении расписания и не только можно будет найти на канале @school134_info" # TODO: Сделать возможность менять это сообщение из базы
+            ad = "\n\n\U0001F50AИнформацию о появлении расписания и не только можно будет найти на канале @school134_info"  # TODO: Сделать возможность менять это сообщение из базы
             schedule_keyboard = functions.schedule_inline_keyboard(days_for_rasp[today][0], klass)
             bot.send_photo(chat_id=message.chat.id, photo=schedule, caption=first_text + ad, reply_markup=schedule_keyboard, disable_notification=True)
         else:
@@ -459,7 +460,7 @@ def callback_inline(call):
                 try:
                     conn = functions.start_sql()
                     cursor = conn.cursor(buffered=True)
-                    functions.isknown(call, pref[2]) # TODO: сделай почеловечести эту функцию
+                    functions.isknown(call, pref[2])  # TODO: сделай почеловечести эту функцию
 
                     get_schedule = "SELECT {day} FROM schedule WHERE klass = '{group}'".format(day=pref[1], group=pref[2])
                     cursor.execute(get_schedule)
@@ -713,6 +714,9 @@ def ras_switch(message, data):
         ei = "".join(traceback.format_exception(*sys.exc_info()))
         name = message.from_user.first_name + ' ' + message.from_user.last_name + ' ' + message.from_user.username + ' ' + str(message.from_user.id) + '\n'
         log('ras ', name + ei)
+
+if __name__ == '__main__':
+    application.run()
 
 '''
 if __name__ == '__main__':

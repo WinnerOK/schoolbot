@@ -1,4 +1,5 @@
-Flask==0.11.1
+gunicorn
+Flask
 pyTelegramBotAPI>=2.1.5
 datetime>=2.3
 openpyxl>=2.3.5
