@@ -75,8 +75,23 @@ logging.basicConfig(format=u'%(filename)s[LINE:%(lineno)d]# %(levelname)-8s [%(a
 
 @bot.message_handler(commands=['test'])
 def test(message):
+    """
+    :param message:
+    :type message: telebot.types.Message
+    """
     try:
         bot.send_message(message.chat.id, 'Server time ' + str(datetime.datetime.now()))
+
+        conn = functions.start_sql()
+        cursor = conn.cursor()
+        get_klass = 'SELECT klass FROM known_users WHERE id = {0}'.format(message.from_user.id)  # получает группу для клавы
+        cursor.execute(get_klass)
+        klass = cursor.fetchone()
+
+        if klass:
+            bot.send_message(message.chat.id, 'klass is true')
+        else:
+            group(message)
     except:
         traceback.print_exc()
         ei = "".join(traceback.format_exception(*sys.exc_info()))
