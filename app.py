@@ -87,7 +87,7 @@ def test(message):
         get_klass = 'SELECT klass FROM known_users WHERE id = {0}'.format(message.from_user.id)  # получает группу для клавы
         cursor.execute(get_klass)
         klass = cursor.fetchone()
-
+        bot.send_message(message.chat.id, str(klass))
         if klass:
             bot.send_message(message.chat.id, 'klass is true')
         else:
