@@ -81,17 +81,6 @@ def test(message):
     """
     try:
         bot.send_message(message.chat.id, 'Server time ' + str(datetime.datetime.now()))
-
-        conn = functions.start_sql()
-        cursor = conn.cursor()
-        get_klass = 'SELECT klass FROM known_users WHERE id = {0}'.format(message.from_user.id)  # получает группу для клавы
-        cursor.execute(get_klass)
-        klass = cursor.fetchone()[0]
-        bot.send_message(message.chat.id, str(klass))
-        if klass:
-            bot.send_message(message.chat.id, 'klass is true')
-        else:
-            group(message)
     except:
         traceback.print_exc()
         ei = "".join(traceback.format_exception(*sys.exc_info()))
@@ -209,9 +198,8 @@ def rasp(message):
         cursor = conn.cursor()
         get_klass = 'SELECT klass FROM known_users WHERE id = {0}'.format(message.from_user.id)  # получает группу для клавы
         cursor.execute(get_klass)
-        klass = cursor.fetchone()
+        klass = cursor.fetchone()[0]
         if klass:
-            klass = klass[0]
             today = (datetime.datetime.now(tz=tz) + datetime.timedelta(hours=8)).weekday()
             cursor.execute("SELECT {0} FROM schedule WHERE klass = '{1}'".format(days_for_rasp[today][0], klass))
             schedule = cursor.fetchone()[0]
