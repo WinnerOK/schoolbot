@@ -80,12 +80,6 @@ def test(message):
     :type message: telebot.types.Message
     """
     try:
-        conn = functions.start_sql()
-        cursor = conn.cursor()
-        get_klass = 'SELECT klass FROM known_users WHERE id = {0}'.format(message.from_user.id)  # получает группу для клавы
-        cursor.execute(get_klass)
-        klass = cursor.fetchone()
-        bot.send_message(message.from_user.id, str(klass))
         bot.send_message(message.chat.id, 'Server time ' + str(datetime.datetime.now()))
     except:
         traceback.print_exc()
@@ -202,10 +196,11 @@ def rasp(message):
     try:
         conn = functions.start_sql()
         cursor = conn.cursor()
-        get_klass = 'SELECT klass FROM known_users WHERE id = {0}'.format(message.from_user.id)  # получает группу для клавы
-        cursor.execute(get_klass)
-        klass = cursor.fetchone()[0]
-        if klass:
+        klass = 'SELECT klass FROM known_users WHERE id = {0}'.format(message.from_user.id)  # получает группу для клавы
+        cursor.execute(klass)
+        klass = cursor.fetchone()
+        if isinstance(klass, tuple) and klass[0]:
+            klass = klass[0]
             today = (datetime.datetime.now(tz=tz) + datetime.timedelta(hours=8)).weekday()
             cursor.execute("SELECT {0} FROM schedule WHERE klass = '{1}'".format(days_for_rasp[today][0], klass))
             schedule = cursor.fetchone()[0]
