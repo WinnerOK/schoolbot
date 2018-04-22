@@ -19,6 +19,7 @@ import openpyxl
 import pytz
 import telebot
 from PIL import Image, ImageDraw, ImageFont
+from docx import Document
 
 import constants
 import functions
@@ -34,6 +35,24 @@ def log(module, info):
     with open('{0}_err.txt'.format(module), 'rb') as f:
         bot.send_document(constants.main_adm, f)
     os.remove('{0}_err.txt'.format(module))
+
+
+class Task:
+    correct = None
+    task = None
+
+    def __init__(self, task, correct):
+        self.task = task
+        if correct:
+            self.correct = correct
+
+    def add(self):
+        if self.correct:
+            return "INSERT INTO history (task, correct) " \
+                   "VALUES ({0}, {1})".format(self.task, self.correct)
+        else:
+            return "INSERT INTO history (task, correct) " \
+                   "VALUES ({0}, NULL)".format(self.task)
 
 
 @bot.message_handler(commands=["ping"])
@@ -242,16 +261,25 @@ def admcmd(message):
                                           "/answer {fb_id} {текст} - Ответить на фидбэк\n"
                                           "/background - Установить фон на следующий месяц (если нет фона - на этот) (нужно делать КАЖДЫЙ месяц!)\n"
                                           "/webhook - Просмотреть информацию о webhook-е\n"
-                                          "/sql {query} - Выполнить SQL-запрос в БД")
+                                          "/sql {query} - Выполнить SQL-запрос в БД\n"
+                                          "/addrasp - Загрузить таблицу с расписанием\n"
+                                          "/addtest - Загрузить docx-файл с вопросами")
 
 
 @bot.message_handler(commands=['addrasp'])  # add addrasp flag in DB / добавляет addrasp флаг с днем недели в бд
 def addrap(message):
     if message.from_user.id == constants.main_adm:
         functions.set_next_step('addrasp', message.from_user.id)
-        bot.send_message(message.from_user.id, "Можете отправлять файл.")
+        bot.send_message(message.from_user.id, "Можете отправлять таблицу.")
     else:
         bot.reply_to(message, "Эта функция доступна *ТОЛЬКО* разработчику", parse_mode="Markdown")
+
+
+@bot.message_handler(commands=['addtest'])
+def add_test(message):
+    if functions.admincheck(message):
+        functions.set_next_step('addtest', message.from_user.id)
+        bot.send_message(message.from_user.id, "Можете отправлять docx-файл.")
 
 
 @bot.message_handler(commands=['fb'])  # sending feedback to developer / отправляет фидбэк разрабу
@@ -429,6 +457,7 @@ def switch(message):
             funcs = {
                 'background-in': set_background,
                 'addrasp': rasp_add,
+                'addtest': test_add,
                 'ras': ras_switch}
             functions.set_next_step('Null', message.from_user.id)
             funcs.get(data_check[0])(message, data)
@@ -652,7 +681,45 @@ def rasp_add(message, data, new_schedule=True):
         traceback.print_exc()
         ei = "".join(traceback.format_exception(*sys.exc_info()))
         name = message.from_user.first_name + ' ' + message.from_user.last_name + ' ' + message.from_user.username + ' ' + str(message.from_user.id) + '\n'
-        log('switch ', name + ei)
+        log('addrasp ', name + ei)
+
+
+def test_add(message, data):
+    '''
+    :param message:
+    :type message: telebot.types.Message
+    :param data:
+    :return:
+    '''
+    try:
+        if message.content_type == "document" and message.document.mime_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+            bot.send_message(message.from_user.id, 'Скачиваю файл')
+            with open('temp.docx', 'wb') as f:
+                f.write(bot.download_file(bot.get_file(message.document.file_id).file_path))
+            bot.send_message(message.from_user.id, 'Обрабатываю файл')
+
+            conn = functions.start_sql()
+            cursor = conn.cursor()
+
+            doc = Document('temp.docx')
+            curtask = Task('', None)
+            for par in doc.paragraphs:
+                if par.text.find('*') != -1:
+                    curtask.correct = par.text[0]
+                curtask.task += par.text.replace('*', '') + '\n'
+                if par.text.startswith('E)'):
+                    cursor.execute(curtask.add())
+                    curtask = Task('', None)
+            conn.commit()
+            os.remove('temp.docx')
+            bot.reply_to(message, "Задания добавлены")
+        else:
+            bot.reply_to(message, "Ожидался docx-файл")
+    except:
+        traceback.print_exc()
+        ei = "".join(traceback.format_exception(*sys.exc_info()))
+        name = message.from_user.first_name + ' ' + message.from_user.last_name + ' ' + message.from_user.username + ' ' + str(message.from_user.id) + '\n'
+        log('addtest ', name + ei)
 
 
 def ras_switch(message, data):
