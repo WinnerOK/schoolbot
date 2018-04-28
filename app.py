@@ -99,6 +99,9 @@ def test(message):
     :type message: telebot.types.Message
     """
     try:
+        conn = functions.start_sql_diff()
+        cursor = conn.cursor()
+        cursor.execute('Insert into switch values ("ok", "ok")')
         bot.send_message(message.chat.id, 'Server time ' + str(datetime.datetime.now()))
     except:
         traceback.print_exc()
@@ -781,7 +784,7 @@ def ras_switch(message, data):
 
 if __name__ == '__main__':
     try:
-        bot.polling(none_stop=True, timeout=5)
+        bot.polling(none_stop=True, timeout=120)
     except Exception as e:
         traceback.print_exc()
 '''

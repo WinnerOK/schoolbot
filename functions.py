@@ -1,6 +1,5 @@
 import traceback
 
-
 import mysql.connector
 import telebot
 
@@ -14,6 +13,19 @@ def start_sql():
                                    database=constants.sql_db,
                                    user=constants.sql_log,
                                    password=constants.sql_pass,
+                                   get_warnings=True,
+                                   use_unicode=True)
+    if conn.is_connected():
+        return conn
+    else:
+        bot.send_message(constants.main_adm, "Can't create SQL connect")
+
+
+def start_sql_diff():
+    conn = mysql.connector.connect(host=constants.other_sql_url,
+                                   database=constants.other_sql_db,
+                                   user=constants.other_sql_log,
+                                   password=constants.other_sql_pass,
                                    get_warnings=True,
                                    use_unicode=True)
     if conn.is_connected():
@@ -110,6 +122,7 @@ def isknown(msg, group_a=None):
     conn.commit()
     cursor.close()
     conn.close()
+
 
 '''
 def send_photo_vk(schedule, day, group):

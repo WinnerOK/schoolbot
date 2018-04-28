@@ -6,6 +6,12 @@ sql_url = env['MYSQL_SERVICE_HOST']
 sql_log = env['MYSQL_USER']  # login
 sql_pass = env['MYSQL_PASSWORD']  # pass
 sql_db = env['MYSQL_DATABASE']
+
+other_sql_url = env['OTHER_MYSQL_SERVICE_HOST']
+other_sql_log = env['OTHER_MYSQL_USER']  # login
+other_sql_pass = env['OTHER_MYSQL_PASSWORD']  # pass
+other_sql_db = env['OTHER_MYSQL_DATABASE']
+
 main_adm = 182092910
 admins = []  #    322526018 - Ирина Анатольевна
 rings = "Урок                Перемена\n" \
