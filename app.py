@@ -668,7 +668,6 @@ def rasp_add(message, data, new_schedule=True):
                                                                                                                  photo_id=photo,
                                                                                                                  group=group.replace('-', '')))
                         # klass строго должен подходить под regexp r'[А-Я]{1,2}\d+'
-                        # создать фотку и кинуть в бота
                 bot.send_message(message.chat.id, "Расписание на " + days[cur_day][1] + " создано", disable_notification=True)
                 cur_day += 1
                 for i in lessons:
@@ -688,12 +687,6 @@ def rasp_add(message, data, new_schedule=True):
 
 
 def test_add(message, data):
-    '''
-    :param message:
-    :type message: telebot.types.Message
-    :param data:
-    :return:
-    '''
     try:
         if message.content_type == "document" and message.document.mime_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
             bot.send_message(message.from_user.id, 'Скачиваю файл')
@@ -787,44 +780,3 @@ if __name__ == '__main__':
         bot.polling(none_stop=True, timeout=120)
     except Exception as e:
         traceback.print_exc()
-'''
-if __name__ == '__main__':
-    application.run()
-
-'''
-
-'''
-from flask import Flask, request
-application = Flask(__name__)
-
-
-@application.route('/')
-def hello_world():
-    return 'hello world!'
-
-
-@application.route('/setwebhook')
-def set_webhook():
-    try:
-        bot.remove_webhook()
-        time.sleep(2)
-        bot.set_webhook(url=os.getenv('SERVER_URL') + '/webhook')
-        return '!', 200
-    except:
-        traceback.print_exc()
-        ei = "".join(traceback.format_exception(*sys.exc_info()))
-        log('setwebhook', ei)
-
-
-@application.route("/webhook", methods=['POST'])
-def get_message():
-    try:
-        update = telebot.types.Update.de_json(request.stream.read().decode("utf-8"))
-        bot.process_new_updates([update])
-        return "!", 200
-    except:
-        traceback.print_exc()
-        ei = "".join(traceback.format_exception(*sys.exc_info()))
-        log('getting msg by hook', ei)
-
-'''
