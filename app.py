@@ -99,10 +99,11 @@ def test(message):
     :type message: telebot.types.Message
     """
     try:
-        conn = functions.start_sql_diff()
-        cursor = conn.cursor()
-        cursor.execute('Insert into switch values ("ok", "ok")')
-        bot.send_message(message.chat.id, 'Server time ' + str(datetime.datetime.now()))
+        if functions.admincheck(message):
+            bot.send_message(message.chat.id, "url: {0}\nlogin: {1}\npass: {2}\nDB: {3}".format(
+                constants.sql_url, constants.sql_log, constants.sql_pass, constants.sql_db
+            ))
+            bot.send_message(message.chat.id, 'Server time ' + str(datetime.datetime.now()))
     except:
         traceback.print_exc()
         ei = "".join(traceback.format_exception(*sys.exc_info()))
